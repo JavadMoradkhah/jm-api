@@ -1,0 +1,11 @@
+{
+  "name": "jm-api",
+  "version": "1.0.0",
+  "description": "A mock API for frontend developers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Javad Moradkhah",
+  "license": "ISC"
+}
