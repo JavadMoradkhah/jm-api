@@ -1,4 +1,5 @@
 const express = require('express');
+const collectionSchema = require('../schema/CollectionSchema');
 const Database = require('../database/db');
 
 function generateRoutes(collections) {
@@ -7,6 +8,15 @@ function generateRoutes(collections) {
 
   collections.forEach((collection) => {
     const { colName, fields } = collection;
+
+    // Validating collection
+    const { error: validationError } = collectionSchema.validate(collection);
+    if (validationError) {
+      console.group(`The "${colName}" Collection validation failed!`);
+      console.log(validationError.message);
+      console.groupEnd();
+      return;
+    }
 
     // Create table if not exists
     DB.createTable(collection);
