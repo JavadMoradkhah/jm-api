@@ -1,3 +1,4 @@
+const generateRoutes = require('./routes/routes');
 const express = require('express');
 const app = express();
 
@@ -5,7 +6,9 @@ app.use(express.json());
 
 try {
   const CLIENT_DIR = process.cwd();
-  const CONFIG = require(`${CLIENT_DIR}\\jm-api.config.js`);
+  const CONFIG = require(`${CLIENT_DIR}\\jm-api.js`);
+
+  app.use('/api', generateRoutes(CONFIG.collections));
 
   app.get('/api', (req, res) => {
     res.send('Hello World');
