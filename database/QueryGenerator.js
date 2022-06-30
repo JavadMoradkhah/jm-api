@@ -18,7 +18,7 @@ function createTable(collection) {
     )
     .join(',\n');
   return `
-    CREATE TABLE IF NOT EXISTS ${collection.name} (
+    CREATE TABLE IF NOT EXISTS ${collection.colName} (
         id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
         ${fields}
     );
