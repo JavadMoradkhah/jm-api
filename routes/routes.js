@@ -1,5 +1,6 @@
 const express = require('express');
 const collectionSchema = require('../schema/CollectionSchema');
+const generateSchema = require('../schema/SchemaGenerator');
 const Database = require('../database/db');
 
 function generateRoutes(collections) {
@@ -10,16 +11,23 @@ function generateRoutes(collections) {
     const { colName, fields } = collection;
 
     // Validating collection
+    console.log(`Validating "${colName}" collection...`);
     const { error: validationError } = collectionSchema.validate(collection);
     if (validationError) {
       console.group(`The "${colName}" Collection validation failed!`);
-      console.log(validationError.message);
+      console.log('Error: ', validationError.message);
       console.groupEnd();
       return;
     }
 
+    // Generating schema for input validation
+    console.log(`Generating "${colName}" schema...`);
+    const schema = generateSchema(fields);
+
     // Create table if not exists
     DB.createTable(collection);
+
+    console.log(`Generating "${colName}" routes...`);
 
     router.get(`/${colName}`, (req, res) => {
       res.send(DB.selectAll(colName));
@@ -39,6 +47,13 @@ function generateRoutes(collections) {
 
     router.post(`/${colName}`, (req, res) => {
       try {
+        const validationResult = schema.validate(req.body);
+        if (validationResult.error) {
+          return res.status(400).send({
+            status: 'BadRequest',
+            message: validationResult.error.message,
+          });
+        }
         const result = DB.insertData(colName, req.body);
         res.status(201).send({ id: result.lastInsertRowid, ...req.body });
       } catch (error) {
@@ -65,9 +80,7 @@ function generateRoutes(collections) {
     router.delete(`/${colName}/:id`, (req, res) => {
       try {
         const id = parseInt(req.params.id);
-
         DB.deleteById(colName, id);
-
         res.send({ status: 'OK', message: '' });
       } catch (error) {
         return res.status(400).send({
