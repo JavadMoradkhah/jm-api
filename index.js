@@ -10,6 +10,8 @@ try {
   const CLIENT_DIR = process.cwd();
   const CONFIG = require(`${CLIENT_DIR}\\jm-api.js`);
 
+  app.use('/uploads', express.static(`${CLIENT_DIR}\\uploads`));
+
   app.use('/api', uploadRoutes);
   app.use('/api', generateRoutes(CONFIG.collections));
 
