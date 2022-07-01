@@ -20,7 +20,7 @@ try {
   );
 } catch (error) {
   if (error.code === 'MODULE_NOT_FOUND') {
-    console.log('The "jm-api.config.js" file does not exist!');
+    console.log('The "jm-api.js" file does not exist!');
   } else {
     console.log(error);
   }
