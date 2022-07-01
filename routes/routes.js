@@ -22,7 +22,8 @@ function generateRoutes(collections) {
 
     // Generating schema for input validation
     console.log(`Generating "${colName}" schema...`);
-    const schema = generateSchema(fields);
+    const schema = generateSchema(fields, false);
+    const updateSchema = generateSchema(fields, true);
 
     // Create table if not exists
     DB.createTable(collection);
@@ -30,7 +31,7 @@ function generateRoutes(collections) {
     console.log(`Generating "${colName}" routes...`);
 
     router.get(`/${colName}`, (req, res) => {
-      res.send(DB.selectAll(colName));
+      res.status(200).send(DB.selectAll(colName));
     });
 
     router.get(`/${colName}/:id`, (req, res) => {
@@ -47,6 +48,7 @@ function generateRoutes(collections) {
 
     router.post(`/${colName}`, (req, res) => {
       try {
+        // Validating request
         const validationResult = schema.validate(req.body);
         if (validationResult.error) {
           return res.status(400).send({
@@ -67,8 +69,24 @@ function generateRoutes(collections) {
     router.put(`/${colName}/:id`, (req, res) => {
       try {
         const id = parseInt(req.params.id);
+        // Checking if request body is empty
+        if (Object.entries(req.body).length === 0) {
+          return res.status(400).send({
+            status: 'BadRequest',
+            message: '',
+          });
+        }
+        // Validating request
+        const validationResult = updateSchema.validate(req.body);
+        if (validationResult.error) {
+          return res.status(400).send({
+            status: 'BadRequest',
+            message: validationResult.error.message,
+          });
+        }
+        // Updating data
         DB.updateById(colName, id, req.body);
-        res.status(200).send(req.body);
+        res.status(200).send({ status: 'OK', message: '' });
       } catch (error) {
         return res.status(400).send({
           status: 'BadRequest',

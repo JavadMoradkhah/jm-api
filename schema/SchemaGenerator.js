@@ -1,14 +1,14 @@
 const Joi = require('joi');
 
-function generateSchema(collectionFields) {
+function generateSchema(collectionFields, isUpdateSchema) {
   const schema = {};
   collectionFields.forEach((field) => {
-    schema[field.name] = getFieldSchema(field);
+    schema[field.name] = getFieldSchema(field, isUpdateSchema);
   });
   return Joi.object(schema);
 }
 
-function getFieldSchema(field) {
+function getFieldSchema(field, isUpdateSchema) {
   let schema = Joi.string();
 
   const { type, min, max, email, required } = field;
@@ -33,7 +33,7 @@ function getFieldSchema(field) {
 
   if (email) schema = schema.email();
 
-  if (required) schema = schema.required();
+  if (required && !isUpdateSchema) schema = schema.required();
 
   return schema;
 }
