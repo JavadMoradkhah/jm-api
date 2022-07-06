@@ -3,6 +3,7 @@
 const configSchema = require('./schema/ConfigSchema');
 const uploadRoutes = require('./routes/UploadRoutes');
 const generateRoutes = require('./routes/routes');
+const figlet = require('figlet');
 const { createSpinner } = require('nanospinner');
 const express = require('express');
 const app = express();
@@ -35,7 +36,16 @@ try {
   });
 
   const PORT = CONFIG.port || 5000;
-  app.listen(PORT, () => console.log(`Server is listening: http://localhost:${PORT}/api/`));
+  const serverSpinner = createSpinner('Starting server...').start();
+  app.listen(PORT, () => {
+    serverSpinner.success();
+    console.log(`Server is listening: http://localhost:${PORT}/api/`);
+    figlet('JM API', function (err, data) {
+      if (!err) {
+        console.log(data);
+      }
+    });
+  });
 } catch (error) {
   if (error.code === 'MODULE_NOT_FOUND') {
     console.log('The "jm-api.js" file does not exist!');
