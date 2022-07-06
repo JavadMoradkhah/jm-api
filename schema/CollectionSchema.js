@@ -30,4 +30,5 @@ const collectionSchema = Joi.object({
   fields: Joi.array().min(1).items(fieldSchema).required(),
 });
 
-module.exports = collectionSchema;
+module.exports.fieldSchema = fieldSchema;
+module.exports.collectionSchema = collectionSchema;

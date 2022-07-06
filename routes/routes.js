@@ -1,5 +1,5 @@
 const express = require('express');
-const collectionSchema = require('../schema/CollectionSchema');
+const { collectionSchema } = require('../schema/CollectionSchema');
 const generateSchema = require('../schema/SchemaGenerator');
 const Database = require('../database/db');
 
