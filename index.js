@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const uploadRoutes = require('./routes/UploadRoutes');
 const generateRoutes = require('./routes/routes');
 const express = require('express');
@@ -23,7 +25,7 @@ try {
   app.listen(PORT, () =>
     console.log(`Server is listening: http://localhost:${PORT}/api/`)
   );
-} catch (error) {
+} catch (error) {66a
   if (error.code === 'MODULE_NOT_FOUND') {
     console.log('The "jm-api.js" file does not exist!');
   } else {
