@@ -2,6 +2,7 @@
 
 const configSchema = require('./schema/ConfigSchema');
 const uploadRoutes = require('./routes/UploadRoutes');
+const generateAuthRoutes = require('./routes/AuthRoutes');
 const generateRoutes = require('./routes/routes');
 const figlet = require('figlet');
 const { createSpinner } = require('nanospinner');
@@ -29,6 +30,9 @@ try {
   app.use('/uploads', express.static(`${CLIENT_DIR}\\uploads`));
 
   app.use('/api', uploadRoutes);
+  if (CONFIG.userModel) {
+    app.use('/api', generateAuthRoutes(CONFIG.userModel));
+  }
   app.use('/api', generateRoutes(CONFIG.collections));
 
   app.get('/api', (req, res) => {
