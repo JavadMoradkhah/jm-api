@@ -3,6 +3,7 @@ const { fieldSchema, collectionSchema } = require('./CollectionSchema');
 
 const Schema = Joi.object({
   port: Joi.number().integer().min(3000).max(9999).default(5000),
+  jwtKey: Joi.string().required(),
   userModel: Joi.object({
     email: Joi.object({
       min: Joi.number().integer(),

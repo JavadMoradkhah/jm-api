@@ -1,13 +1,15 @@
 const loginSchema = require('../schema/LoginSchema');
 const Database = require('../database/db');
 const generateSchema = require('../schema/SchemaGenerator');
+const jwt = require('jsonwebtoken');
 const express = require('express');
 
-function generateAuthRoutes(userModel) {
+function generateAuthRoutes(CONFIG) {
   const router = express.Router();
 
   const colName = 'users';
   const DB = new Database();
+  const { jwtKey, userModel } = CONFIG;
 
   // Checking if email and password property exists
   if (!userModel.email) userModel.email = {};
@@ -36,12 +38,29 @@ function generateAuthRoutes(userModel) {
   const schema = generateSchema(fields, false);
 
   router.post('/register', (req, res, next) => {
-    const { error: validationError } = schema.validate(req.body);
-    if (validationError) {
-      return res.status(400).send({ status: 'BadRequest', message: validationError.message });
+    try {
+      const { error: validationError } = schema.validate(req.body);
+      if (validationError) {
+        return res.status(400).send({ status: 'BadRequest', message: validationError.message });
+      }
+      const result = DB.insertData(colName, req.body);
+      const id = result.lastInsertRowid;
+      const user = { id, ...req.body };
+      delete user.password;
+      const token = jwt.sign(user, jwtKey);
+      res.status(200).send({ status: 'OK', token, user });
+    } catch (error) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        return res.status(400).send({
+          status: 'BadRequest',
+          message: 'A user already exists with the given email!',
+        });
+      }
+      return res.status(400).send({
+        status: 'BadRequest',
+        message: error.message,
+      });
     }
-    const result = DB.insertData(colName, req.body);
-    res.status(200).send({ id: result.lastInsertRowid, ...req.body });
   });
 
   router.post('/login', (req, res, next) => {
@@ -56,7 +75,9 @@ function generateAuthRoutes(userModel) {
         message: 'The given email or password is incorrect',
       });
     }
-    res.status(200).send({ status: 'OK', user: { ...user, password: undefined } });
+    delete user.password;
+    const token = jwt.sign(user, jwtKey);
+    res.status(200).send({ status: 'OK', token, user });
   });
 
   return router;

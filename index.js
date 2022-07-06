@@ -31,7 +31,7 @@ try {
 
   app.use('/api', uploadRoutes);
   if (CONFIG.userModel) {
-    app.use('/api', generateAuthRoutes(CONFIG.userModel));
+    app.use('/api', generateAuthRoutes(CONFIG));
   }
   app.use('/api', generateRoutes(CONFIG.collections));
 

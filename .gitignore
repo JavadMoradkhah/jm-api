@@ -2,3 +2,4 @@ node_modules/
 jm-api.js
 jm-api.db
 uploads/
+.env
