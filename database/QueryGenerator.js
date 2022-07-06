@@ -12,10 +12,7 @@ function isRequired(required) {
 
 function createTable(collection) {
   const fields = collection.fields
-    .map(
-      ({ name, type, unique, required }) =>
-        `${name} ${DataTypes[type]} ${isUnique(unique)} ${isRequired(required)}`
-    )
+    .map(({ name, type, unique, required }) => `${name} ${DataTypes[type]} ${isUnique(unique)} ${isRequired(required)}`)
     .join(',\n');
   return `
     CREATE TABLE IF NOT EXISTS ${collection.colName} (
@@ -37,6 +34,10 @@ function selectRowById(colName, id) {
   return select().from(colName).where({ id }).toString();
 }
 
+function findRow(colName, values) {
+  return select().from(colName).where(values).toString();
+}
+
 function insertRow(colName, values) {
   return insert(colName, values).toString();
 }
@@ -53,6 +54,7 @@ module.exports.createTable = createTable;
 module.exports.dropTable = dropTable;
 module.exports.selectAllRows = selectAllRows;
 module.exports.selectRowById = selectRowById;
+module.exports.findRow = findRow;
 module.exports.insertRow = insertRow;
 module.exports.updateRow = updateRow;
 module.exports.deleteRow = deleteRow;

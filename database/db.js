@@ -4,6 +4,7 @@ const {
   selectAllRows,
   insertRow,
   selectRowById,
+  findRow,
   updateRow,
   deleteRow,
 } = require('./QueryGenerator');
@@ -26,6 +27,10 @@ class Database {
 
   selectById(collName, id) {
     return DB.prepare(selectRowById(collName, id)).get();
+  }
+
+  findOne(collName, values) {
+    return DB.prepare(findRow(collName, values)).get();
   }
 
   insertData(collName, values) {
