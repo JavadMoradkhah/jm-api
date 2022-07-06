@@ -1,3 +1,4 @@
+const { createSpinner } = require('nanospinner');
 const express = require('express');
 const { collectionSchema } = require('../schema/CollectionSchema');
 const generateSchema = require('../schema/SchemaGenerator');
@@ -17,17 +18,18 @@ function generateRoutes(collections) {
     const { colName, fields } = collection;
 
     // Validating the collection
-    console.log(`Validating "${colName}" collection...`);
+    const collectionSpinner = createSpinner(`Validating "${colName}" collection...`).start();
     const { error: validationError } = collectionSchema.validate(collection);
     if (validationError) {
+      collectionSpinner.error();
       console.group(`The "${colName}" Collection validation failed!`);
       console.log('Error: ', validationError.message);
       console.groupEnd();
       return;
     }
+    collectionSpinner.success();
 
     // Generating schema for input validation
-    console.log(`Generating "${colName}" schema...`);
     const schema = generateSchema(fields, false);
     const updateSchema = generateSchema(fields, true);
 
@@ -43,7 +45,7 @@ function generateRoutes(collections) {
       }
     }
 
-    console.log(`Generating "${colName}" routes...`);
+    const routesSpinner = createSpinner(`Generating "${colName}" routes...`).start();
 
     router.get(`/${colName}`, (req, res) => {
       res.status(200).send(DB.selectAll(colName));
@@ -122,6 +124,8 @@ function generateRoutes(collections) {
         });
       }
     });
+
+    routesSpinner.success();
   });
   return router;
 }

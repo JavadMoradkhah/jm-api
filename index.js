@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+
 const configSchema = require('./schema/ConfigSchema');
 const uploadRoutes = require('./routes/UploadRoutes');
 const generateRoutes = require('./routes/routes');
+const { createSpinner } = require('nanospinner');
 const express = require('express');
 const app = express();
 
@@ -12,13 +14,16 @@ try {
   const CLIENT_DIR = process.cwd();
   const CONFIG = require(`${CLIENT_DIR}\\jm-api.js`);
 
+  const configValidationSpinner = createSpinner('Validating configuration settings...').start();
   const configValidationResult = configSchema.validate(CONFIG);
   if (configValidationResult.error) {
+    configValidationSpinner.error();
     console.group('The configuration settings are not set correctly!');
     console.log(configValidationResult.error.message);
     console.groupEnd();
     process.exit(1);
   }
+  configValidationSpinner.success();
 
   app.use('/uploads', express.static(`${CLIENT_DIR}\\uploads`));
 
