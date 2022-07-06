@@ -20,8 +20,17 @@ function generateAuthRoutes(userModel) {
   // Overwriting fields array
   const fields = [emailField, passwordField, ...userModel.fields];
 
-  // Creating a users table
-  DB.createTable({ colName, fields });
+  try {
+    // Creating users table
+    DB.createTable({ colName, fields });
+    // Adding created collection to the collections table
+    DB.insertData('collections', { name: colName });
+  } catch (error) {
+    if (error.code !== 'SQLITE_CONSTRAINT_UNIQUE') {
+      console.log(error);
+      process.exit(1);
+    }
+  }
 
   // Generating user schema to validate requests
   const schema = generateSchema(fields, false);
@@ -40,8 +49,14 @@ function generateAuthRoutes(userModel) {
     if (validationError) {
       return res.status(400).send({ status: 'BadRequest', message: validationError.message });
     }
-    // const result = DB.selectAll(colName, req.body);
-    res.status(200).send(req.body);
+    const user = DB.findOne(colName, { email: req.body.email });
+    if (!user || user.password !== req.body.password) {
+      return res.status(400).send({
+        status: 'Error',
+        message: 'The given email or password is incorrect',
+      });
+    }
+    res.status(200).send({ status: 'OK', user: { ...user, password: undefined } });
   });
 
   return router;
