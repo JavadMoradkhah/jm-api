@@ -7,10 +7,16 @@ function generateRoutes(collections) {
   const router = express.Router();
   const DB = new Database();
 
+  // Creating a collections table to store the list of created collections
+  DB.createTable({
+    colName: 'collections',
+    fields: [{ name: 'name', type: 'string', unique: true, required: true }],
+  });
+
   collections.forEach((collection) => {
     const { colName, fields } = collection;
 
-    // Validating collection
+    // Validating the collection
     console.log(`Validating "${colName}" collection...`);
     const { error: validationError } = collectionSchema.validate(collection);
     if (validationError) {
@@ -25,8 +31,17 @@ function generateRoutes(collections) {
     const schema = generateSchema(fields, false);
     const updateSchema = generateSchema(fields, true);
 
-    // Create table if not exists
-    DB.createTable(collection);
+    try {
+      // Creating table if not exists
+      DB.createTable(collection);
+      // Adding created collection to the collections table
+      DB.insertData('collections', { name: colName });
+    } catch (error) {
+      if (error.code !== 'SQLITE_CONSTRAINT_UNIQUE') {
+        console.log(error);
+        return;
+      }
+    }
 
     console.log(`Generating "${colName}" routes...`);
 
