@@ -1,9 +1,14 @@
 const Joi = require('joi');
 const { fieldSchema, collectionSchema } = require('./CollectionSchema');
+const defaults = require('../config/defaults');
 
 const Schema = Joi.object({
-  port: Joi.number().integer().min(3000).max(9999).default(5000),
+  port: Joi.number().integer().min(3000).max(9999).default(defaults.port),
   jwtKey: Joi.string().required(),
+  upload: Joi.object({
+    path: Joi.string(),
+    maxUploadSize: Joi.number().integer().min(1),
+  }),
   userModel: Joi.object({
     email: Joi.object({
       min: Joi.number().integer(),
