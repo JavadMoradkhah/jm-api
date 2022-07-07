@@ -2,6 +2,7 @@ const loginSchema = require('../schema/LoginSchema');
 const Database = require('../database/db');
 const generateSchema = require('../schema/SchemaGenerator');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const express = require('express');
 
 function generateAuthRoutes(CONFIG) {
@@ -10,6 +11,7 @@ function generateAuthRoutes(CONFIG) {
   const colName = 'users';
   const DB = new Database();
   const { jwtKey, userModel } = CONFIG;
+  const saltRounds = 10;
 
   // Checking if email and password property exists
   if (!userModel.email) userModel.email = {};
@@ -37,16 +39,23 @@ function generateAuthRoutes(CONFIG) {
   // Generating user schema to validate requests
   const schema = generateSchema(fields, false);
 
-  router.post('/register', (req, res, next) => {
+  router.post('/register', async (req, res, next) => {
     try {
-      const { error: validationError } = schema.validate(req.body);
+      const requestBody = { ...req.body };
+
+      const { error: validationError } = schema.validate(requestBody);
       if (validationError) {
         return res.status(400).send({ status: 'BadRequest', message: validationError.message });
       }
-      const result = DB.insertData(colName, req.body);
+
+      const hash = await bcrypt.hash(requestBody.password, saltRounds);
+      requestBody.password = hash;
+
+      const result = DB.insertData(colName, requestBody);
       const id = result.lastInsertRowid;
-      const user = { id, ...req.body };
+      const user = { id, ...requestBody };
       delete user.password;
+
       const token = jwt.sign(user, jwtKey);
       res.status(200).send({ status: 'OK', token, user });
     } catch (error) {
@@ -56,6 +65,7 @@ function generateAuthRoutes(CONFIG) {
           message: 'A user already exists with the given email!',
         });
       }
+
       return res.status(400).send({
         status: 'BadRequest',
         message: error.message,
@@ -63,18 +73,28 @@ function generateAuthRoutes(CONFIG) {
     }
   });
 
-  router.post('/login', (req, res, next) => {
+  router.post('/login', async (req, res, next) => {
     const { error: validationError } = loginSchema.validate(req.body);
     if (validationError) {
       return res.status(400).send({ status: 'BadRequest', message: validationError.message });
     }
+
     const user = DB.findOne(colName, { email: req.body.email });
-    if (!user || user.password !== req.body.password) {
+    if (!user) {
       return res.status(400).send({
-        status: 'Error',
+        status: 'BadRequest',
         message: 'The given email or password is incorrect',
       });
     }
+
+    const passwordIsMatch = await bcrypt.compare(req.body.password, user.password);
+    if (!passwordIsMatch) {
+      return res.status(400).send({
+        status: 'BadRequest',
+        message: 'The given email or password is incorrect',
+      });
+    }
+
     delete user.password;
     const token = jwt.sign(user, jwtKey);
     res.status(200).send({ status: 'OK', token, user });
