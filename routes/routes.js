@@ -8,12 +8,6 @@ function generateRoutes(collections) {
   const router = express.Router();
   const DB = new Database();
 
-  // Creating a collections table to store the list of created collections
-  DB.createTable({
-    colName: 'collections',
-    fields: [{ name: 'name', type: 'string', unique: true, required: true }],
-  });
-
   collections.forEach((collection) => {
     const { colName, fields } = collection;
 
@@ -29,7 +23,7 @@ function generateRoutes(collections) {
     } catch (error) {
       if (error.code !== 'SQLITE_CONSTRAINT_UNIQUE') {
         console.log(error);
-        return;
+        process.exit(1);
       }
     }
 

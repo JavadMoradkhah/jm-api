@@ -8,11 +8,19 @@ const {
   updateRow,
   deleteRow,
 } = require('./QueryGenerator');
-const CLIENT_DIR = process.cwd();
-const DB_PATH = `${CLIENT_DIR}\\jm-api.db`;
+const path = require('path');
+const DB_PATH = path.resolve(process.cwd(), 'jm-api.db');
 const DB = require('better-sqlite3')(DB_PATH);
 
 class Database {
+  constructor() {
+    // Creating a collections table to store the list of created collections
+    this.createTable({
+      colName: 'collections',
+      fields: [{ name: 'name', type: 'string', unique: true, required: true }],
+    });
+  }
+
   createTable(collection) {
     DB.prepare(createTable(collection)).run();
   }

@@ -5,17 +5,17 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const express = require('express');
 
-function generateAuthRoutes(CONFIG) {
+function generateAuthRoutes(userModel = {}, jwtKey) {
   const router = express.Router();
 
   const colName = 'users';
   const DB = new Database();
-  const { jwtKey, userModel } = CONFIG;
   const saltRounds = 10;
 
-  // Checking if email and password property exists
+  // Initializing properties if they're not exist
   if (!userModel.email) userModel.email = {};
   if (!userModel.password) userModel.password = {};
+  if (!userModel.fields) userModel.fields = [];
 
   // Overwriting email and password property
   const emailField = { ...userModel.email, name: 'email', type: 'string', email: true, unique: true, required: true };
@@ -48,6 +48,7 @@ function generateAuthRoutes(CONFIG) {
         return res.status(400).send({ status: 'BadRequest', message: validationError.message });
       }
 
+      // Encrypting users password
       const hash = await bcrypt.hash(requestBody.password, saltRounds);
       requestBody.password = hash;
 

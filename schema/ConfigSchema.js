@@ -13,7 +13,7 @@ const Schema = Joi.object({
       min: Joi.number().integer(),
       max: Joi.number().integer().max(255),
     }),
-    fields: Joi.array().min(1).items(fieldSchema).required(),
+    fields: Joi.array().items(fieldSchema),
   }),
   collections: Joi.array().items(collectionSchema).required(),
 });
