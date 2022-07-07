@@ -7,7 +7,7 @@ const Schema = Joi.object({
   jwtKey: Joi.string().required(),
   upload: Joi.object({
     path: Joi.string(),
-    maxUploadSize: Joi.number().integer().min(1),
+    maxUploadSize: Joi.number().integer().min(1024),
   }),
   userModel: Joi.object({
     email: Joi.object({

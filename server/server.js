@@ -1,5 +1,5 @@
 const defaults = require('../config/defaults');
-const uploadRoutes = require('../routes/UploadRoutes');
+const generateUploadRoute = require('../routes/UploadRoutes');
 const generateAuthRoutes = require('../routes/AuthRoutes');
 const generateRoutes = require('../routes/routes');
 const figlet = require('figlet');
@@ -12,12 +12,13 @@ function startServer(CLIENT_DIR, CONFIG) {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
 
-  const uploadPath = CONFIG.upload.path || defaults.upload.path;
+  const uploadPath = path.resolve(CLIENT_DIR, CONFIG.upload.path || defaults.upload.path);
+  const uploadMaxUploadSize = CONFIG.upload.maxUploadSize || defaults.upload.maxUploadSize;
 
-  app.use('/api', uploadRoutes);
   app.use('/api', generateAuthRoutes(CONFIG.userModel, CONFIG.jwtKey));
   app.use('/api', generateRoutes(CONFIG.collections));
-  app.use('/uploads', express.static(path.resolve(CLIENT_DIR, uploadPath)));
+  app.use('/api', generateUploadRoute(uploadPath, uploadMaxUploadSize));
+  app.use('/uploads', express.static(uploadPath));
 
   const PORT = CONFIG.port || defaults.port;
   const serverSpinner = createSpinner('Starting server...').start();
