@@ -17,18 +17,6 @@ function generateRoutes(collections) {
   collections.forEach((collection) => {
     const { colName, fields } = collection;
 
-    // Validating the collection
-    const collectionSpinner = createSpinner(`Validating "${colName}" collection...`).start();
-    const { error: validationError } = collectionSchema.validate(collection);
-    if (validationError) {
-      collectionSpinner.error();
-      console.group(`The "${colName}" Collection validation failed!`);
-      console.log('Error: ', validationError.message);
-      console.groupEnd();
-      return;
-    }
-    collectionSpinner.success();
-
     // Generating schema for input validation
     const schema = generateSchema(fields, false);
     const updateSchema = generateSchema(fields, true);
