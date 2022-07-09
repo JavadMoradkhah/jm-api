@@ -1,6 +1,5 @@
 const { createSpinner } = require('nanospinner');
 const express = require('express');
-const { collectionSchema } = require('../schema/CollectionSchema');
 const generateSchema = require('../schema/SchemaGenerator');
 const Database = require('../database/db');
 
@@ -30,7 +29,7 @@ function generateRoutes(collections) {
     const routesSpinner = createSpinner(`Generating "${colName}" routes...`).start();
 
     router.get(`/${colName}`, (req, res) => {
-      res.status(200).send(DB.selectAll(colName));
+      res.status(200).send(DB.selectAll(colName, req.query));
     });
 
     router.get(`/${colName}/:id`, (req, res) => {

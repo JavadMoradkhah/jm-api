@@ -29,8 +29,9 @@ class Database {
     DB.prepare(dropTable(collName)).run();
   }
 
-  selectAll(collName) {
-    return DB.prepare(selectAllRows(collName)).all();
+  selectAll(collName, query) {
+    const sqlQuery = selectAllRows(collName, query);
+    return DB.prepare(sqlQuery).all();
   }
 
   selectById(collName, id) {

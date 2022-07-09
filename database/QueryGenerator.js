@@ -1,6 +1,36 @@
-const DataTypes = require('./DataTypes');
 const sql = require('sql-bricks');
+const DataTypes = require('./DataTypes');
 const { select, insert, update } = sql;
+
+const QueryOperators = {
+  eq: (key, value) => {
+    return `${key}=${wrapValue(value)}`;
+  },
+  neq: (key, value) => {
+    return `${key}!=${wrapValue(value)}`;
+  },
+  lt: (key, value) => {
+    return `${key}<${wrapValue(value)}`;
+  },
+  lte: (key, value) => {
+    return `${key}<=${wrapValue(value)}`;
+  },
+  gt: (key, value) => {
+    return `${key}>${wrapValue(value)}`;
+  },
+  gte: (key, value) => {
+    return `${key}>=${wrapValue(value)}`;
+  },
+  con: (key, value) => {
+    return `${key} LIKE ${wrapValue(`%${value}%`)}`;
+  },
+  sw: (key, value) => {
+    return `${key} LIKE ${wrapValue(`${value}%`)}`;
+  },
+  ew: (key, value) => {
+    return `${key} LIKE ${wrapValue(`%${value}`)}`;
+  },
+};
 
 function isUnique(unique) {
   return unique ? 'UNIQUE' : '';
@@ -8,6 +38,10 @@ function isUnique(unique) {
 
 function isRequired(required) {
   return required ? 'NOT NULL' : '';
+}
+
+function wrapValue(value) {
+  return isNaN(value) ? `'${value}'` : value;
 }
 
 function createTable(collection) {
@@ -26,8 +60,22 @@ function dropTable(colName) {
   return `DROP TABLE IF EXISTS ${colName}`;
 }
 
-function selectAllRows(colName) {
-  return select().from(colName).toString();
+function selectAllRows(colName, query) {
+  const queryEntries = Object.entries(query);
+  if (queryEntries.length === 0) {
+    return select().from(colName).toString();
+  }
+
+  const filters = queryEntries.map((qItem) => {
+    const [key, value] = qItem;
+    const [fieldName, operator] = key.split('.');
+    if (operator !== undefined && operator in QueryOperators) {
+      return QueryOperators[operator](fieldName, value);
+    }
+    return QueryOperators['eq'](fieldName, value);
+  });
+
+  return `SELECT * FROM ${colName} WHERE ${filters.join(' AND ')};`;
 }
 
 function selectRowById(colName, id) {
